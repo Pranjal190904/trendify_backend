@@ -5,7 +5,6 @@ const {port}=require('./config/env.config');
 const {dbConnect}=require('./config/db.config');
 const authRoute=require('./routes/auth.route');
 const trendifyRoute=require('./routes/trendify.route');
-const {updateProductData}=require('./controllers/trendify.controller');
 
 const app=express();
 
