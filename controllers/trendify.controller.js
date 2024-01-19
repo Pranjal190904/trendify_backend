@@ -1,4 +1,5 @@
 const productModel=require('../models/product.model');
+const userModel=require('../models/user.model');
 
 async function getProducts(req, res){
     try{
@@ -24,4 +25,80 @@ async function getProducts(req, res){
     }
 };
 
-module.exports={getProducts};
+async function addToWishlist(req,res)
+{
+    try{
+        const userId=req.user.aud;
+        const productId=req.body;
+        const user=await userModel.findOne({_id:userId});
+        const wishList=user.wishList;
+        wishList.push(productId);
+        await userModel.findOneAndUpdate({_id:userId},{wishList:wishList});
+        res.status(200).json({message:"product added to wishlist."})
+    }
+    catch(err)
+    {
+        res.status(500).json({message:"internal server error."});
+    }
+}
+
+async function addToCart(req,res)
+{
+    try{
+        const userId=req.user.aud;
+        const productId=req.body;
+        const user=await userModel.findOne({_id:userId});
+        const cart=user.cart;
+        cart.push(productId);
+        await userModel.findOneAndUpdate({_id:userId},{cart:cart});
+        res.status(200).json({message:"product added to cart."});
+    }
+    catch(err)
+    {
+        res.status(500).jaon({message:"internal server error."})
+    }
+}
+
+async function getWishList(req,res)
+{
+    try{
+        const userId=req.user.aud;
+        const userLogged=await userModel.findOne({_id:userId});
+        const wishList=userLogged.wishList;
+        const userWishlist=[];
+        for(let i=0;i<wishList.length;i++)
+        {
+            const {productId}=wishList[i];
+            const product=await productModel.findOne({_id:productId});
+            userWishlist.push(product);
+        }
+        res.status(200).json(userWishlist);
+    }
+    catch(err)
+    {
+        res.status(500).json({message:"internal server error."});
+    }
+}
+
+async function getCart(req,res)
+{
+    try{
+        const userId=req.user.aud;
+        const userLogged=await userModel.findOne({_id:userId});
+        const cart=userLogged.cart;
+        const userCart=[];
+        for(let i=0;i<cart.length;i++)
+        {
+            const {productId}=cart[i];
+            const product=await productModel.findOne({_id:productId});
+            userCart.push(product);
+        }
+        res.status(200).json(userCart);
+    }
+    catch(err)
+    {
+        res.status(500).json({message:"internal server error."});
+    }
+}
+
+module.exports={getProducts,addToWishlist,addToCart,getWishList,getCart};

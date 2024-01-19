@@ -1,4 +1,4 @@
-const {ACCESS_TOKEN_SECRET}=require('../config/env.config');
+const {accessTokenSecret}=require('../config/env.config');
 const jwt=require('jsonwebtoken');
 
 function signAccessToken(id)
@@ -11,12 +11,12 @@ function signAccessToken(id)
         const options={
             expiresIn:'10d'
         };
-        const token=jwt.sign(payload,ACCESS_TOKEN_SECRET,options);
+        const token=jwt.sign(payload,accessTokenSecret,options);
         return token;
     }
     catch(err)
     {
-        res.status(500).json({message:"internal server error."});
+        console.log(err);
     }
 }
 

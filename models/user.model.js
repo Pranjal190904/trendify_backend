@@ -9,17 +9,15 @@ const userSchema=mongoose.Schema({
         type:String,
         require:true
     },
-    phone:{
-        type:String
-    },
     password:{
         type:String,
         require:true
     },
-    isVerified:{
-        type:Boolean,
-        require:true,
-        default:false
+    wishList:{
+        type:Array,
+    },
+    cart:{
+        type:Array
     }
 })
 
