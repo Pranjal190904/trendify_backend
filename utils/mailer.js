@@ -1,7 +1,7 @@
 const nodeMailer=require('nodemailer');
 const {mail,mailPass}=require('../config/env.config')
 
-function sendMail(email,otp)
+async function sendMail(email,otp)
 {
     const transporter=nodeMailer.createTransport({
         service:'gmail',
@@ -18,7 +18,7 @@ function sendMail(email,otp)
     }
 
     try{
-        transporter.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
         console.log("mail sent successfully.")
     }
     catch(err)
