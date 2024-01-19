@@ -29,7 +29,7 @@ async function addToWishlist(req,res)
 {
     try{
         const userId=req.user.aud;
-        const productId=req.body;
+        const {productId}=req.body;
         const user=await userModel.findOne({_id:userId});
         const wishList=user.wishList;
         wishList.push(productId);
@@ -46,7 +46,7 @@ async function addToCart(req,res)
 {
     try{
         const userId=req.user.aud;
-        const productId=req.body;
+        const {productId}=req.body;
         const user=await userModel.findOne({_id:userId});
         const cart=user.cart;
         cart.push(productId);
@@ -101,4 +101,53 @@ async function getCart(req,res)
     }
 }
 
-module.exports={getProducts,addToWishlist,addToCart,getWishList,getCart};
+async function removeFromWishlist(req,res)
+{
+    try{
+        const userId=req.user.aud;
+        const {productId}=req.body;
+        const user=await userModel.findOne({_id:userId});
+        const wishList=user.wishList;
+        for(let i=0;i<wishList.length;i++)
+        {
+            if(wishList[i].productId==productId)
+            {
+                wishList.splice(i,1);
+                break;
+            }
+        }
+        await userModel.findOneAndUpdate({_id:userId},{wishList:wishList});
+        res.status(200).json({message:"product removed from wishlist."})
+    }
+    catch(err)
+    {
+        res.status(500).json({message:"internal server error."});
+    }
+}
+
+async function removeFromCart(req,res)
+{
+    try{
+        const userId=req.user.aud;
+        const {productId}=req.body;
+        const user=await userModel.findOne({_id:userId});
+        const cart=user.cart;
+        for(let i=0;i<cart.length;i++)
+        {
+            if(cart[i].productId==productId)
+            {
+                cart.splice(i,1);
+                break;
+            }
+        }
+        await userModel.findOneAndUpdate({_id:userId},{cart:cart});
+        res.status(200).json({message:"product removed from cart."})
+    }
+    catch(err)
+    {
+        res.status(500).json({message:"internal server error."});
+    }
+}
+
+
+module.exports={getProducts,addToWishlist,addToCart,getWishList,getCart,removeFromCart,removeFromWishlist};
