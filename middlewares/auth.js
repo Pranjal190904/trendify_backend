@@ -5,7 +5,7 @@ function verifyAccessToken(req,res,next)
 {
     try
     {
-        const token=req.cookies.accessToken;
+        const token=req.header("Authorization").split(" ")[1];
         if(!token)
         {
             res.status(401).json({message:"token missing."});
