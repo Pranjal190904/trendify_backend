@@ -29,7 +29,7 @@ async function addToWishlist(req,res)
 {
     try{
         const userId=req.user.aud;
-        const {productId}=req.body;
+        const productId=req.body;
         const user=await userModel.findOne({_id:userId});
         const wishList=user.wishList;
         wishList.push(productId);
@@ -46,7 +46,7 @@ async function addToCart(req,res)
 {
     try{
         const userId=req.user.aud;
-        const {productId}=req.body;
+        const productId=req.body;
         const user=await userModel.findOne({_id:userId});
         const cart=user.cart;
         cart.push(productId);
