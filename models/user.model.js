@@ -18,6 +18,9 @@ const userSchema=mongoose.Schema({
     },
     cart:{
         type:Array
+    },
+    notification:{
+        type:Array
     }
 })
 

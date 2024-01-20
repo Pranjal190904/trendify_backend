@@ -1,5 +1,6 @@
 const productModel=require('../models/product.model');
 const userModel=require('../models/user.model');
+const notificationModel=require('../models/notification.model');
 
 async function getProducts(req, res){
     try{
@@ -29,11 +30,15 @@ async function addToWishlist(req,res)
 {
     try{
         const userId=req.user.aud;
-        const productId=req.body;
+        const {productId}=req.body;
         const user=await userModel.findOne({_id:userId});
+        const product=await productModel.findOne({_id:productId});
+        const wishingUsers=product.wishingUsers;
+        wishingUsers.push(userId);
         const wishList=user.wishList;
         wishList.push(productId);
         await userModel.findOneAndUpdate({_id:userId},{wishList:wishList});
+        await productModel.findOneAndUpdate({_id:productId},{wishingUsers:wishingUsers});
         res.status(200).json({message:"product added to wishlist."})
     }
     catch(err)
@@ -68,7 +73,7 @@ async function getWishList(req,res)
         const userWishlist=[];
         for(let i=0;i<wishList.length;i++)
         {
-            const {productId}=wishList[i];
+            const productId=wishList[i];
             const product=await productModel.findOne({_id:productId});
             userWishlist.push(product);
         }
@@ -110,13 +115,24 @@ async function removeFromWishlist(req,res)
         const wishList=user.wishList;
         for(let i=0;i<wishList.length;i++)
         {
-            if(wishList[i].productId==productId)
+            if(wishList[i]==productId)
             {
                 wishList.splice(i,1);
                 break;
             }
         }
+        const product=await productModel.findOne({_id:productId});
+        const wishingUsers=product.wishingUsers;
+        for(let i=0;i<wishingUsers.length;i++)
+        {
+            if(wishingUsers[i]==userId)
+            {
+                wishingUsers.splice(i,1);
+                break;
+            }
+        }
         await userModel.findOneAndUpdate({_id:userId},{wishList:wishList});
+        await productModel.findOneAndUpdate({_id:productId},{wishingUsers:wishingUsers});
         res.status(200).json({message:"product removed from wishlist."})
     }
     catch(err)
@@ -149,5 +165,58 @@ async function removeFromCart(req,res)
     }
 }
 
+async function changePrice(req,res)
+{
+    const {productId,newPrice}=req.body;
+    const product=await productModel.findOne({_id:productId});
+    const wishingUsers=product.wishingUsers;
+    if(product.price<=newPrice)
+    {
+        await productModel.findOneAndUpdate({_id:productId},{price:newPrice});
+        res.status(200).json({message:"price updated successfully."})
+        return ;
+    }
+    const subject="Product price decreased.";
+    const detail=`Price of ${product.productName} changed to ${newPrice}`;
+    for(let i=0;i<wishingUsers.length;i++)
+    {
+        sendNotification(wishingUsers[i],subject,detail);
+    }
+    await productModel.findOneAndUpdate({_id:productId},{price:newPrice});
+    res.status(200).json({message:"price updated successfully."})
+}
 
-module.exports={getProducts,addToWishlist,addToCart,getWishList,getCart,removeFromCart,removeFromWishlist};
+
+async function sendNotification(userId,subject,detail)
+{
+    const user=await userModel.findOne({_id:userId});
+    const notifications=user.notification;
+    const newNotification=new notificationModel({
+        subject:subject,
+        detail:detail
+    });
+    const savedNotification=await newNotification.save();
+    await notifications.push(savedNotification.id);
+    await userModel.findOneAndUpdate({_id:userId},{notification:notifications});
+}
+
+async function getNotifications(req,res)
+{
+    try{
+        const userId=req.user.aud;
+        const userLogged=await userModel.findOne({_id:userId});
+        const notifications=userLogged.notification;
+        const notificationData=[];
+        for(let i=0;i<notifications.length;i++)
+        {
+            const notification=await notificationModel.findOne({_id:notifications[i]});
+            notificationData.push(notification);
+        }
+        res.status(200).json(notificationData);
+    }
+    catch(err)
+    {
+        res.status(500).json({message:"internal server error."})
+    }
+}
+module.exports={getProducts,addToWishlist,addToCart,getWishList,getCart,removeFromCart,removeFromWishlist,changePrice,getNotifications};

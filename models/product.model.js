@@ -15,6 +15,9 @@ const productSchema=mongoose.Schema({
     },
     details:{
         type:String
+    },
+    wishingUsers:{
+        type:Array
     }
 })
 
